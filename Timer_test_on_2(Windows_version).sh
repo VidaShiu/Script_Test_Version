@@ -1,5 +1,4 @@
 #!/bin/bash
-
 echo "************************"
 echo "Please Enter The Test Time (in seconds) And Press Enter To Confirm."
 read -t 5 -p "5 Seconds Buffer Time, Enter Or Wait (Set Default Value): " inputchar
@@ -12,20 +11,17 @@ if [ "$a" = "$dest" ]; then
   echo
   a=86400
 else 
-  echo "Saved And Execute That Settings"
+  echo "Saved And Excute That Settings"
   sleep 1
 fi 
-
 echo "Time Is Initializing..."
-ntpdate time.stdtime.gov.tw  # 初始同步系統時間
+ntpdate time.stdtime.gov.tw #與NTP(tock.stdtime.gov.tw)同步系統時間
 sleep 2
-sudo timedatectl set-local-rtc 1  # 將 RTC 設為本地時間（同步系統時間）
+sudo timedatectl set-local-rtc 1 #將硬體RTC同步為系統時間
 sleep 2
+timestamp=$(date +"%Y-%m-%d-%H-%M-%S") #建立時間戳記(格式：YYYY-MM-DD-HH-MM-SS)
+logfile="RTC_On_Test_$timestamp.txt" #使用時間戳記命名log
 
-timestamp=$(date +"%Y-%m-%d-%H-%M-%S")
-logfile="RTC_On_Test_$timestamp.txt"
-
-echo "Start The Test..."
 echo "=== Test Start ===" > "$logfile"
 sudo timedatectl status | grep -E 'Local time|Universal time|RTC time|Time zone' | tee -a "$logfile"
 

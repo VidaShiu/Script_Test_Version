@@ -1,0 +1,14 @@
+Time Is Initializing...
+ 5 Sep 13:17:01 ntpdate[5570]: step time server 118.163.81.61 offset +0.075819 sec
+Start The Test...
+
+2025-09-05 13:17:05:638
+2025-09-05 13:17:05.051273+08:00
+server 118.163.81.61, stratum 2, offset +0.026489, delay 0.02716
+ 5 Sep 13:17:06 ntpdate[5590]: adjust time server 118.163.81.61 offset +0.026489 sec
+
+Test Has Been Completed.
+
+2025-09-05 13:17:11:764
+server 118.163.81.61, stratum 2, offset +0.042392, delay 0.02733
+ 5 Sep 13:17:11 ntpdate[5595]: adjust time server 118.163.81.61 offset +0.042392 sec

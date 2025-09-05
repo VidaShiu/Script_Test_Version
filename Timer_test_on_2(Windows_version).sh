@@ -22,37 +22,43 @@ sleep 2
 timestamp=$(date +"%Y-%m-%d-%H-%M-%S") #建立時間戳記(格式：YYYY-MM-DD-HH-MM-SS)
 logfile="RTC_On_Test_$timestamp.txt" #使用時間戳記命名log
 
-echo "=== Test Start ===" > "$logfile"
-sudo timedatectl status | grep -E 'Local time|Universal time|RTC time|Time zone' | tee -a "$logfile"
+echo "Start The Test..."
+sudo timedatectl status | grep -E 'Local time|Universal time|RTC time|Time zone'
+# 顯示當前所有時間，作為測試起點
+output=$(sudo timedatectl status | grep -E 'Local time|RTC time')
+echo "$output" >> "$logfile"
+# 擷取時間資訊
 
-# 擷取初始 offset（系統時間與 NTP 差距）
-start_offset=$(ntpdate -q time.stdtime.gov.tw | grep 'offset' | tail -n 1 | awk '{print $10}')
-echo "Initial system offset: $start_offset sec" | tee -a "$logfile"
-
-sleep "$a"
+sleep $a
 echo ""
 
 echo "Test Has Been Completed."
-echo "=== Test End ===" >> "$logfile"
-sudo timedatectl status | grep -E 'Local time|Universal time|RTC time|Time zone' | tee -a "$logfile"
-
-# 還原 RTC 設定為 UTC
-sudo timedatectl set-local-rtc 0
+sudo timedatectl status | grep -E 'Local time|Universal time|RTC time|Time zone'
+# 顯示當前所有時間，作為測試終點
+output=$(sudo timedatectl status | grep -E 'Local time|RTC time')
+echo "$output" >> "$logfile"
+# 擷取時間資訊
 sleep 1
+sudo timedatectl set-local-rtc 0
+# 還原RTC設定為UTC
 
-# 擷取結束 offset（系統時間與 NTP 差距）
-end_offset=$(ntpdate -q time.stdtime.gov.tw | grep 'offset' | tail -n 1 | awk '{print $10}')
-echo "Final system offset: $end_offset sec" | tee -a "$logfile"
-
-# 計算偏移絕對值
-abs_offset=$(echo "$end_offset" | awk '{print ($1 < 0) ? -$1 : $1}')
-
-echo ""
 echo "Test Result Is:"
-if (( $(echo "$abs_offset <= 2" | bc) )); then
-  echo "RTC time test: Pass (偏移 $end_offset 秒)" | tee -a "$logfile"
-else
-  echo "RTC time test: Fail (偏移 $end_offset 秒)" | tee -a "$logfile"
-fi
+local_time=$(echo "$output" | grep 'Local time' | awk -F': ' '{print $2}')
+rtc_time=$(echo "$output" | grep 'RTC time' | awk -F':   ' '{print $2}')
+# 擷取時間字串
 
+local_ts=$(date -d "$local_time" +%s)
+rtc_ts=$(date -d "$rtc_time" +%s)
+# 轉換為 timestamp
+
+offset=$((local_ts - rtc_ts))
+abs_offset=$(echo "$offset" | awk '{print ($1 < 0) ? -$1 : $1}')
+# 計算偏移
+
+if [ "$abs_offset" -le 2 ]; then
+  echo "RTC time test: Pass (偏移 $offset 秒)"
+else
+  echo "RTC time test: Fail (偏移 $offset 秒)"
+fi
+# 判斷是否通過±2秒標準
 rm -f inputchar.txt

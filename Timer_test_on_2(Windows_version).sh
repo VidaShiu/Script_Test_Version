@@ -1,58 +1,57 @@
 #!/bin/bash
+
 echo "************************"
 echo "Please Enter The Test Time (in seconds) And Press Enter To Confirm."
 read -t 5 -p "5 Seconds Buffer Time, Enter Or Wait (Set Default Value): " inputchar
-# 使用者有5秒輸入測試時間(sec.)，否則預設為86400秒(24小時)
 echo $inputchar > inputchar.txt
 a=$(cat inputchar.txt)
-dest=
-if [ "$a" = "$dest" ]; then
+rm -f inputchar.txt
+
+if [ -z "$a" ]; then
   echo "Set The Test Time Duration: 24 hrs"
-  echo
   a=86400
 else 
-  echo "Saved And Excute That Settings"
+  echo "Saved And Execute That Settings: $a seconds"
   sleep 1
 fi 
-echo "Time Is Initializing..."
-ntpdate time.stdtime.gov.tw #與NTP(tock.stdtime.gov.tw)同步系統時間
-sleep 2
-sudo timedatectl set-local-rtc 1 #將硬體RTC同步為系統時間
-sleep 2
-timestamp=$(date +"%Y-%m-%d-%H-%M-%S") #建立時間戳記(格式：YYYY-MM-DD-HH-MM-SS)
-logfile="RTC_On_Test_$timestamp.txt" #使用時間戳記命名log
 
-echo "=== Test Start ===" > "$logfile"
+echo "Time Is Initializing..."
+ntpdate time.stdtime.gov.tw
+sleep 2
+sudo timedatectl set-local-rtc 1
+sleep 2
+
+timestamp=$(date +"%Y-%m-%d-%H-%M-%S")
+logfile="RTC_On_Test_$timestamp.txt"
+
+echo "=== Test Start ===" | tee "$logfile"
 sudo timedatectl status | grep -E 'Local time|Universal time|RTC time|Time zone' | tee -a "$logfile"
 
-# 擷取初始 offset（系統時間與 NTP 差距）
-start_offset=$(ntpdate -q time.stdtime.gov.tw | grep 'offset' | tail -n 1 | awk '{print $10}')
+# 擷取初始 offset
+start_offset=$(ntpdate -q time.stdtime.gov.tw | grep -oP 'offset\s+\K[-+]?[0-9.]+')
 echo "Initial system offset: $start_offset sec" | tee -a "$logfile"
 
 sleep "$a"
 echo ""
 
-echo "Test Has Been Completed."
-echo "=== Test End ===" >> "$logfile"
+echo "Test Has Been Completed." | tee -a "$logfile"
+echo "=== Test End ===" | tee -a "$logfile"
 sudo timedatectl status | grep -E 'Local time|Universal time|RTC time|Time zone' | tee -a "$logfile"
 
-# 還原 RTC 設定為 UTC
 sudo timedatectl set-local-rtc 0
 sleep 1
 
-# 擷取結束 offset（系統時間與 NTP 差距）
-end_offset=$(ntpdate -q time.stdtime.gov.tw | grep 'offset' | tail -n 1 | awk '{print $10}')
+# 擷取結束 offset
+end_offset=$(ntpdate -q time.stdtime.gov.tw | grep -oP 'offset\s+\K[-+]?[0-9.]+')
 echo "Final system offset: $end_offset sec" | tee -a "$logfile"
 
 # 計算偏移絕對值
 abs_offset=$(echo "$end_offset" | awk '{print ($1 < 0) ? -$1 : $1}')
 
-echo ""
-echo "Test Result Is:"
+echo "" | tee -a "$logfile"
+echo "Test Result Is:" | tee -a "$logfile"
 if (( $(echo "$abs_offset <= 2" | bc) )); then
   echo "RTC time test: Pass (偏移 $end_offset 秒)" | tee -a "$logfile"
 else
   echo "RTC time test: Fail (偏移 $end_offset 秒)" | tee -a "$logfile"
 fi
-
-rm -f inputchar.txt

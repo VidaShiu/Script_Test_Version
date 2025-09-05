@@ -1,0 +1,8 @@
+2025-09-05 13:41:51:799
+2025-09-05 13:41:51.085855+08:00
+server 118.163.81.61, stratum 2, offset +0.028455, delay 0.02711
+ 5 Sep 13:41:52 ntpdate[5814]: adjust time server 118.163.81.61 offset +0.028455 sec
+2025-09-05 13:41:57:920
+2025-09-05 13:41:57.221494+08:00
+server 118.163.81.61, stratum 2, offset +0.046900, delay 0.02789
+ 5 Sep 13:41:58 ntpdate[5826]: adjust time server 118.163.81.61 offset +0.046900 sec

@@ -1,19 +1,19 @@
 #!/bin/bash
-
 echo "************************"
 echo "Please Enter The Test Time (in seconds) And Press Enter To Confirm."
 read -t 5 -p "5 Seconds Buffer Time, Enter Or Wait (Set Default Value): " inputchar
+# 使用者有5秒輸入測試時間(sec.)，否則預設為86400秒(24小時)
 echo $inputchar > inputchar.txt
 a=$(cat inputchar.txt)
-rm -f inputchar.txt
-
-if [ -z "$a" ]; then
+dest=
+if [ "$a" = "$dest" ]; then
   echo "Set The Test Time Duration: 24 hrs"
+  echo
   a=86400
 else 
-  echo "Saved And Execute That Settings: $a seconds"
+  echo "Saved And Excute That Settings"
   sleep 1
-fi 
+fi
 
 echo "Time Is Initializing..."
 ntpdate time.stdtime.gov.tw
@@ -55,3 +55,4 @@ if (( $(echo "$abs_offset <= 2" | bc) )); then
 else
   echo "RTC time test: Fail (偏移 $end_offset 秒)" | tee -a "$logfile"
 fi
+

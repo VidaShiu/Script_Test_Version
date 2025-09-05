@@ -23,9 +23,9 @@ timestamp=$(date +"%Y-%m-%d-%H-%M-%S") #建立時間戳記(格式：YYYY-MM-DD-H
 logfile="RTC_On_Test_$timestamp.txt" #使用時間戳記命名log
 
 echo "Start The Test..."
-sudo timedatectl status | grep -E 'Local time|Universal time|RTC time|Time zone'
+sudo ntpdate -q time.stdtime.gov.tw
 # 顯示當前所有時間，作為測試起點
-output=$(sudo timedatectl status | grep -E 'Local time|RTC time')
+output=$(sudo ntpdate -q time.stdtime.gov.tw)
 echo "$output" >> "$logfile"
 # 擷取時間資訊
 
@@ -33,9 +33,9 @@ sleep $a
 echo ""
 
 echo "Test Has Been Completed."
-sudo timedatectl status | grep -E 'Local time|Universal time|RTC time|Time zone'
+sudo sudo ntpdate -q time.stdtime.gov.tw
 # 顯示當前所有時間，作為測試終點
-output=$(sudo timedatectl status | grep -E 'Local time|RTC time')
+output=$(sudo ntpdate -q time.stdtime.gov.tw)
 echo "$output" >> "$logfile"
 # 擷取時間資訊
 sleep 1

@@ -13,46 +13,46 @@ if [ "$a" = "$dest" ]; then
 else 
   echo "Saved And Excute That Settings"
   sleep 1
-fi
-
+fi 
 echo "Time Is Initializing..."
-ntpdate time.stdtime.gov.tw
+ntpdate time.stdtime.gov.tw #與NTP(tock.stdtime.gov.tw)同步系統時間
 sleep 2
-sudo timedatectl set-local-rtc 1
+sudo timedatectl set-local-rtc 1 #將硬體RTC同步為系統時間
 sleep 2
+timestamp=$(date +"%Y-%m-%d-%H-%M-%S") #建立時間戳記(格式：YYYY-MM-DD-HH-MM-SS)
+logfile="RTC_On_Test_$timestamp.txt" #使用時間戳記命名log
 
-timestamp=$(date +"%Y-%m-%d-%H-%M-%S")
-logfile="RTC_On_Test_$timestamp.txt"
-
-echo "=== Test Start ===" | tee "$logfile"
+echo "=== Test Start ===" > "$logfile"
 sudo timedatectl status | grep -E 'Local time|Universal time|RTC time|Time zone' | tee -a "$logfile"
 
-# 擷取初始 offset
-start_offset=$(ntpdate -q time.stdtime.gov.tw | grep -oP 'offset\s+\K[-+]?[0-9.]+')
+# 擷取初始 offset（系統時間與 NTP 差距）
+start_offset=$(ntpdate -q time.stdtime.gov.tw | grep 'offset' | tail -n 1 | awk '{print $10}')
 echo "Initial system offset: $start_offset sec" | tee -a "$logfile"
 
 sleep "$a"
 echo ""
 
-echo "Test Has Been Completed." | tee -a "$logfile"
-echo "=== Test End ===" | tee -a "$logfile"
+echo "Test Has Been Completed."
+echo "=== Test End ===" >> "$logfile"
 sudo timedatectl status | grep -E 'Local time|Universal time|RTC time|Time zone' | tee -a "$logfile"
 
+# 還原 RTC 設定為 UTC
 sudo timedatectl set-local-rtc 0
 sleep 1
 
-# 擷取結束 offset
-end_offset=$(ntpdate -q time.stdtime.gov.tw | grep -oP 'offset\s+\K[-+]?[0-9.]+')
+# 擷取結束 offset（系統時間與 NTP 差距）
+end_offset=$(ntpdate -q time.stdtime.gov.tw | grep 'offset' | tail -n 1 | awk '{print $10}')
 echo "Final system offset: $end_offset sec" | tee -a "$logfile"
 
 # 計算偏移絕對值
 abs_offset=$(echo "$end_offset" | awk '{print ($1 < 0) ? -$1 : $1}')
 
-echo "" | tee -a "$logfile"
-echo "Test Result Is:" | tee -a "$logfile"
+echo ""
+echo "Test Result Is:"
 if (( $(echo "$abs_offset <= 2" | bc) )); then
   echo "RTC time test: Pass (偏移 $end_offset 秒)" | tee -a "$logfile"
 else
   echo "RTC time test: Fail (偏移 $end_offset 秒)" | tee -a "$logfile"
 fi
 
+rm -f inputchar.txt
